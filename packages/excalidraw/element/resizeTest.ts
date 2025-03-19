@@ -13,6 +13,7 @@ import type {
 import {
   getTransformHandlesFromCoords,
   getTransformHandles,
+  getCropTransformHandles,
   getOmitSidesForDevice,
   canResizeFromSides,
 } from "./transformHandles";
@@ -28,15 +29,72 @@ import {
 import type { Line, Point } from "../../utils/geometry/shape";
 import { isLinearElement } from "./typeChecks";
 
-const isInsideTransformHandle = (
-  transformHandle: TransformHandle,
+const isInsideTransformHandle = (transformHandle: TransformHandle, x: number, y: number,) =>
+  x >= transformHandle[0] && x <= transformHandle[0] + transformHandle[2] && y >= transformHandle[1] && y <= transformHandle[1] + transformHandle[3];
+
+export const CropWindowResizeTest = (
+  element: NonDeletedExcalidrawElement,
+  elementsMap: ElementsMap,
+  appState: AppState,
   x: number,
   y: number,
-) =>
-  x >= transformHandle[0] &&
-  x <= transformHandle[0] + transformHandle[2] &&
-  y >= transformHandle[1] &&
-  y <= transformHandle[1] + transformHandle[3];
+  zoom: Zoom,
+  pointerType: PointerType,
+  device: Device,
+): MaybeTransformHandleType => {
+  if (!appState.selectedElementIds[element.id]) {
+    return false;
+  }
+
+  
+  /*--For detect corner--*/
+  const { rotation: cropRotationTransformHandle, ...cropTransformHandles } = getCropTransformHandles(element, zoom, elementsMap, pointerType, getOmitSidesForDevice(device),);
+  const cropFilter = Object.keys(cropTransformHandles).filter((key) => {
+    const transformHandle = cropTransformHandles[key as Exclude<TransformHandleType, "rotation">]!;
+    if (!transformHandle) {
+      return false;
+    }
+    
+    return isInsideTransformHandle(transformHandle, x, y);
+  });
+
+  if (cropFilter.length > 0) {
+    return cropFilter[0] as TransformHandleType;
+  }
+  /*--For detect corner--*/
+
+  /*--For detect side--*/
+  if (canResizeFromSides(device)) {
+    if ('isRenderCropWindow' in element && 'cropProperties' in element) {
+      if (element.isRenderCropWindow) {
+        const nx1 = element.x + element.cropProperties.x;
+        const ny1 = element.y + element.cropProperties.y;
+        const nx2 = nx1 + element.cropProperties.width;
+        const ny2 = ny1 + element.cropProperties.height;
+        const ncx = element.x + element.width / 2;
+        const ncy = element.y + element.height / 2;
+
+        const SPACING = SIDE_RESIZING_THRESHOLD / zoom.value;
+        const sides = getSelectionBorders(
+          [nx1, ny1],
+          [nx2, ny2],
+          [ncx, ncy],
+          angleToDegrees(element.angle),
+        );
+  
+        for (const [dir, side] of Object.entries(sides)) {
+          // test to see if x, y are on the line segment
+          if (pointOnLine([x, y], side as Line, SPACING)) {
+            return dir as TransformHandleType;
+          }
+        }
+      }
+    }
+  }
+  /*--For detect side--*/
+
+  return false;
+};
 
 export const resizeTest = (
   element: NonDeletedExcalidrawElement,
@@ -52,40 +110,51 @@ export const resizeTest = (
     return false;
   }
 
-  const { rotation: rotationTransformHandle, ...transformHandles } =
-    getTransformHandles(
-      element,
-      zoom,
-      elementsMap,
-      pointerType,
-      getOmitSidesForDevice(device),
-    );
+  const { rotation: rotationTransformHandle, ...transformHandles } = getTransformHandles(element, zoom, elementsMap, pointerType, getOmitSidesForDevice(device),);
 
-  if (
-    rotationTransformHandle &&
-    isInsideTransformHandle(rotationTransformHandle, x, y)
-  ) {
+  // console.log(getTransformHandles(element, zoom, elementsMap, pointerType, getOmitSidesForDevice(device),));
+  
+  /*--For detect rotation--*/
+  if (rotationTransformHandle && isInsideTransformHandle(rotationTransformHandle, x, y)) {
     return "rotation" as TransformHandleType;
   }
+  /*--For detect rotation--*/
 
+  /*--For detect corner--*/
   const filter = Object.keys(transformHandles).filter((key) => {
-    const transformHandle =
-      transformHandles[key as Exclude<TransformHandleType, "rotation">]!;
+    const transformHandle = transformHandles[key as Exclude<TransformHandleType, "rotation">]!;
     if (!transformHandle) {
       return false;
     }
+    // console.log(transformHandle);
+    
     return isInsideTransformHandle(transformHandle, x, y);
   });
 
   if (filter.length > 0) {
     return filter[0] as TransformHandleType;
   }
+  /*--For detect corner--*/
 
+  /*--For detect corner--*/
+  const { rotation: cropRotationTransformHandle, ...cropTransformHandles } = getCropTransformHandles(element, zoom, elementsMap, pointerType, getOmitSidesForDevice(device),);
+  const cropFilter = Object.keys(cropTransformHandles).filter((key) => {
+    const transformHandle = cropTransformHandles[key as Exclude<TransformHandleType, "rotation">]!;
+    if (!transformHandle) {
+      return false;
+    }
+    
+    return isInsideTransformHandle(transformHandle, x, y);
+  });
+
+  if (cropFilter.length > 0) {
+    return cropFilter[0] as TransformHandleType;
+  }
+  /*--For detect corner--*/
+
+  /*--For detect side--*/
   if (canResizeFromSides(device)) {
-    const [x1, y1, x2, y2, cx, cy] = getElementAbsoluteCoords(
-      element,
-      elementsMap,
-    );
+    const [x1, y1, x2, y2, cx, cy] = getElementAbsoluteCoords(element, elementsMap,);
 
     // do not resize from the sides for linear elements with only two points
     if (!(isLinearElement(element) && element.points.length <= 2)) {
@@ -97,6 +166,9 @@ export const resizeTest = (
         angleToDegrees(element.angle),
       );
 
+      // console.log(sides);
+      
+
       for (const [dir, side] of Object.entries(sides)) {
         // test to see if x, y are on the line segment
         if (pointOnLine([x, y], side as Line, SPACING)) {
@@ -104,7 +176,36 @@ export const resizeTest = (
         }
       }
     }
+
+    if ('isRenderCropWindow' in element && 'cropProperties' in element) {
+      if (element.isRenderCropWindow) {
+        const nx1 = x1 + element.cropProperties.x;
+        const ny1 = y1 + element.cropProperties.y;
+        const nx2 = nx1 + element.cropProperties.width;
+        const ny2 = ny1 + element.cropProperties.height;
+        const ncx = element.x + element.width / 2;
+        const ncy = element.y + element.height / 2;
+
+        const SPACING = SIDE_RESIZING_THRESHOLD / zoom.value;
+        const sides = getSelectionBorders(
+          [nx1, ny1],
+          [nx2, ny2],
+          [ncx, ncy],
+          angleToDegrees(element.angle),
+        );
+  
+        for (const [dir, side] of Object.entries(sides)) {
+          // test to see if x, y are on the line segment
+          if (pointOnLine([x, y], side as Line, SPACING)) {
+            return dir as TransformHandleType;
+          }
+        }
+      }
+    }
   }
+
+  // CropWindowResizeTest(element, appState, x, y, zoom, device,);
+  /*--For detect side--*/
 
   return false;
 };
@@ -123,6 +224,7 @@ export const getElementWithTransformHandleType = (
     if (result) {
       return result;
     }
+
     const transformHandleType = resizeTest(
       element,
       elementsMap,
@@ -133,6 +235,7 @@ export const getElementWithTransformHandleType = (
       pointerType,
       device,
     );
+
     return transformHandleType ? { element, transformHandleType } : null;
   }, null as { element: NonDeletedExcalidrawElement; transformHandleType: MaybeTransformHandleType } | null);
 };
@@ -154,8 +257,7 @@ export const getTransformHandleTypeFromCoords = (
   );
 
   const found = Object.keys(transformHandles).find((key) => {
-    const transformHandle =
-      transformHandles[key as Exclude<TransformHandleType, "rotation">]!;
+    const transformHandle = transformHandles[key as Exclude<TransformHandleType, "rotation">]!;
     return (
       transformHandle &&
       isInsideTransformHandle(transformHandle, scenePointerX, scenePointerY)
@@ -208,8 +310,7 @@ export const getCursorForResizingElement = (resizingElement: {
   transformHandleType: MaybeTransformHandleType;
 }): string => {
   const { element, transformHandleType } = resizingElement;
-  const shouldSwapCursors =
-    element && Math.sign(element.height) * Math.sign(element.width) === -1;
+  const shouldSwapCursors = element && Math.sign(element.height) * Math.sign(element.width) === -1;
   let cursor = null;
 
   switch (transformHandleType) {

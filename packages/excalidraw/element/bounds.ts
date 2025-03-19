@@ -161,9 +161,7 @@ export const getElementAbsoluteCoords = (
       includeBoundText,
     );
   } else if (isTextElement(element)) {
-    const container = elementsMap
-      ? getContainerElement(element, elementsMap)
-      : null;
+    const container = elementsMap ? getContainerElement(element, elementsMap) : null;
     if (isArrowElement(container)) {
       const coords = LinearElementEditor.getBoundTextElementPosition(
         container,
@@ -179,7 +177,7 @@ export const getElementAbsoluteCoords = (
         coords.y + element.height / 2,
       ];
     }
-  }
+  }  
   return [
     element.x,
     element.y,

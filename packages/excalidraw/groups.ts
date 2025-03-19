@@ -64,8 +64,7 @@ export const selectGroupsForSelectedElements = (function () {
     "selectedGroupIds" | "editingGroupId" | "selectedElementIds"
   >;
 
-  let lastSelectedElements: readonly NonDeleted<ExcalidrawElement>[] | null =
-    null;
+  let lastSelectedElements: readonly NonDeleted<ExcalidrawElement>[] | null = null;
   let lastElements: readonly NonDeleted<ExcalidrawElement>[] | null = null;
   let lastReturnValue: SelectGroupsReturnType | null = null;
 

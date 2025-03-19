@@ -50,10 +50,7 @@ import {
 import { KEYS } from "../keys";
 import { useTunnels } from "../context/tunnels";
 
-export const canChangeStrokeColor = (
-  appState: UIAppState,
-  targetElements: ExcalidrawElement[],
-) => {
+export const canChangeStrokeColor = (appState: UIAppState,targetElements: ExcalidrawElement[],) => {
   let commonSelectedType: ExcalidrawElementType | null =
     targetElements[0]?.type || null;
 
@@ -74,89 +71,60 @@ export const canChangeStrokeColor = (
   );
 };
 
-export const canChangeBackgroundColor = (
-  appState: UIAppState,
-  targetElements: ExcalidrawElement[],
-) => {
+export const canChangeBackgroundColor = (appState: UIAppState,targetElements: ExcalidrawElement[],) => {
   return (
     hasBackground(appState.activeTool.type) ||
     targetElements.some((element) => hasBackground(element.type))
   );
 };
 
-export const SelectedShapeActions = ({
-  appState,
-  elementsMap,
-  renderAction,
-}: {
-  appState: UIAppState;
-  elementsMap: NonDeletedElementsMap | NonDeletedSceneElementsMap;
-  renderAction: ActionManager["renderAction"];
-}) => {
+export const SelectedShapeActions = ({appState,elementsMap,renderAction,}: {appState: UIAppState;elementsMap: NonDeletedElementsMap | NonDeletedSceneElementsMap;renderAction: ActionManager["renderAction"];}) => {
   const targetElements = getTargetElements(elementsMap, appState);
 
   let isSingleElementBoundContainer = false;
-  if (
-    targetElements.length === 2 &&
-    (hasBoundTextElement(targetElements[0]) ||
-      hasBoundTextElement(targetElements[1]))
-  ) {
+  if (targetElements.length === 2 &&(hasBoundTextElement(targetElements[0]) || hasBoundTextElement(targetElements[1]))) {
     isSingleElementBoundContainer = true;
   }
   const isEditing = Boolean(appState.editingElement);
   const device = useDevice();
   const isRTL = document.documentElement.getAttribute("dir") === "rtl";
 
-  const showFillIcons =
-    (hasBackground(appState.activeTool.type) &&
-      !isTransparent(appState.currentItemBackgroundColor)) ||
-    targetElements.some(
-      (element) =>
-        hasBackground(element.type) && !isTransparent(element.backgroundColor),
-    );
+  const showFillIcons = (hasBackground(appState.activeTool.type) && !isTransparent(appState.currentItemBackgroundColor)) || targetElements.some((element) =>
+    hasBackground(element.type) && !isTransparent(element.backgroundColor),
+  );
 
-  const showLinkIcon =
-    targetElements.length === 1 || isSingleElementBoundContainer;
+  const showLinkIcon = targetElements.length === 1 || isSingleElementBoundContainer;
 
-  const showLineEditorAction =
-    !appState.editingLinearElement &&
-    targetElements.length === 1 &&
-    isLinearElement(targetElements[0]);
+  const showLineEditorAction = !appState.editingLinearElement && targetElements.length === 1 && isLinearElement(targetElements[0]);
 
   return (
     <div className="panelColumn">
-      <div>
-        {canChangeStrokeColor(appState, targetElements) &&
-          renderAction("changeStrokeColor")}
-      </div>
-      {canChangeBackgroundColor(appState, targetElements) && (
-        <div>{renderAction("changeBackgroundColor")}</div>
-      )}
+      <div>{canChangeStrokeColor(appState, targetElements) && renderAction("changeStrokeColor")}</div>
+
+      {canChangeBackgroundColor(appState, targetElements) && (<div>{renderAction("changeBackgroundColor")}</div>)}
+
+      {/*--myca--*/}
+      {/* {renderAction("changeSvgImportMode")} */}
+      {/*--myca--*/}
+      
       {showFillIcons && renderAction("changeFillStyle")}
 
-      {(hasStrokeWidth(appState.activeTool.type) ||
-        targetElements.some((element) => hasStrokeWidth(element.type))) &&
-        renderAction("changeStrokeWidth")}
+      {(hasStrokeWidth(appState.activeTool.type) || targetElements.some((element) => hasStrokeWidth(element.type))) && renderAction("changeStrokeWidth")}
 
-      {(appState.activeTool.type === "freedraw" ||
-        targetElements.some((element) => element.type === "freedraw")) &&
-        renderAction("changeStrokeShape")}
+      {(appState.activeTool.type === "freedraw" || targetElements.some((element) => element.type === "freedraw")) && renderAction("changeStrokeShape")}
 
-      {(hasStrokeStyle(appState.activeTool.type) ||
-        targetElements.some((element) => hasStrokeStyle(element.type))) && (
+      {(hasStrokeStyle(appState.activeTool.type) || targetElements.some((element) => hasStrokeStyle(element.type))) && (
         <>
           {renderAction("changeStrokeStyle")}
           {renderAction("changeSloppiness")}
         </>
       )}
 
-      {(canChangeRoundness(appState.activeTool.type) ||
-        targetElements.some((element) => canChangeRoundness(element.type))) && (
+      {(canChangeRoundness(appState.activeTool.type) || targetElements.some((element) => canChangeRoundness(element.type))) && (
         <>{renderAction("changeRoundness")}</>
       )}
 
-      {(appState.activeTool.type === "text" ||
-        targetElements.some(isTextElement)) && (
+      {(appState.activeTool.type === "text" || targetElements.some(isTextElement)) && (
         <>
           {renderAction("changeFontSize")}
 
@@ -168,14 +136,26 @@ export const SelectedShapeActions = ({
         </>
       )}
 
-      {shouldAllowVerticalAlign(targetElements, elementsMap) &&
-        renderAction("changeVerticalAlign")}
-      {(canHaveArrowheads(appState.activeTool.type) ||
-        targetElements.some((element) => canHaveArrowheads(element.type))) && (
+      {shouldAllowVerticalAlign(targetElements, elementsMap) && renderAction("changeVerticalAlign")}
+
+      {(canHaveArrowheads(appState.activeTool.type) || targetElements.some((element) => canHaveArrowheads(element.type))) && (
         <>{renderAction("changeArrowhead")}</>
       )}
 
       {renderAction("changeOpacity")}
+
+      {/*--myca--*/}
+        {(appState.activeTool.type === "image" || targetElements.some((element) => element.type === "image")) && targetElements.length === 1 && (
+          <>
+            <fieldset>
+              <legend>Crop</legend>
+              <div className="buttonList">
+                {renderAction("cropImage")}
+              </div>
+            </fieldset>
+          </>
+        )}
+      {/*--myca--*/}
 
       <fieldset>
         <legend>{t("labels.layers")}</legend>
@@ -237,6 +217,10 @@ export const SelectedShapeActions = ({
             {!device.editor.isMobile && renderAction("deleteSelectedElements")}
             {renderAction("group")}
             {renderAction("ungroup")}
+            {/*--myca--*/}
+            {renderAction("makeClippingMask")}
+            {renderAction("releaseClippingMask")}
+            {/*--myca--*/}
             {showLinkIcon && renderAction("hyperlink")}
             {showLineEditorAction && renderAction("toggleLinearEditor")}
           </div>
@@ -427,13 +411,7 @@ export const ShapesSwitcher = ({
   );
 };
 
-export const ZoomActions = ({
-  renderAction,
-  zoom,
-}: {
-  renderAction: ActionManager["renderAction"];
-  zoom: Zoom;
-}) => (
+export const ZoomActions = ({renderAction,zoom,}: {renderAction: ActionManager["renderAction"];zoom: Zoom;}) => (
   <Stack.Col gap={1} className="zoom-actions">
     <Stack.Row align="center">
       {renderAction("zoomOut")}
@@ -443,13 +421,7 @@ export const ZoomActions = ({
   </Stack.Col>
 );
 
-export const UndoRedoActions = ({
-  renderAction,
-  className,
-}: {
-  renderAction: ActionManager["renderAction"];
-  className?: string;
-}) => (
+export const UndoRedoActions = ({renderAction,className,}: {renderAction: ActionManager["renderAction"];className?: string;}) => (
   <div className={`undo-redo-buttons ${className}`}>
     <div className="undo-button-container">
       <Tooltip label={t("buttons.undo")}>{renderAction("undo")}</Tooltip>
@@ -460,13 +432,7 @@ export const UndoRedoActions = ({
   </div>
 );
 
-export const ExitZenModeAction = ({
-  actionManager,
-  showExitZenModeBtn,
-}: {
-  actionManager: ActionManager;
-  showExitZenModeBtn: boolean;
-}) => (
+export const ExitZenModeAction = ({actionManager,showExitZenModeBtn,}: {actionManager: ActionManager;showExitZenModeBtn: boolean;}) => (
   <button
     type="button"
     className={clsx("disable-zen-mode", {
@@ -478,13 +444,7 @@ export const ExitZenModeAction = ({
   </button>
 );
 
-export const FinalizeAction = ({
-  renderAction,
-  className,
-}: {
-  renderAction: ActionManager["renderAction"];
-  className?: string;
-}) => (
+export const FinalizeAction = ({renderAction,className,}: {renderAction: ActionManager["renderAction"];className?: string;}) => (
   <div className={`finalize-button ${className}`}>
     {renderAction("finalize", { size: "small" })}
   </div>

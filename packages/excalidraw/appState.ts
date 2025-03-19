@@ -109,6 +109,43 @@ export const getDefaultAppState = (): Omit<
     objectsSnapModeEnabled: false,
     userToFollow: null,
     followedBy: new Set(),
+    svgImportMode: 2,
+    svgAncorProperties: {
+      hpx: 0,
+      hpy: 0,
+      cpx: 0,
+      cpy: 0,
+      dragging: false,
+      hoverPointProps: {
+        id: '',
+        aidx: 0,
+        bidx: 0
+      },
+      clickedPointProps: {
+        id: '',
+        aidx: 0,
+        bidx: 0
+      },
+      openedPointProps: {
+        id: '',
+        aidx: 0,
+        bidx: 0
+      }
+    },
+    lastCropImageId: '',
+    imageCropProperties: {
+      isDragging: false,
+      id: '',
+      offsetX: 0,
+      offsetY: 0,
+      TransformHandleType: false,
+      CropProperties: {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+      }
+    }
   };
 };
 
@@ -116,6 +153,7 @@ export const getDefaultAppState = (): Omit<
  * Config containing all AppState keys. Used to determine whether given state
  *  prop should be stripped when exporting to given storage type.
  */
+/*--myca--*/
 const APP_STATE_STORAGE_CONF = (<
   Values extends {
     /** whether to keep when storing to browser storage (localStorage/IDB) */
@@ -221,7 +259,12 @@ const APP_STATE_STORAGE_CONF = (<
   objectsSnapModeEnabled: { browser: true, export: false, server: false },
   userToFollow: { browser: false, export: false, server: false },
   followedBy: { browser: false, export: false, server: false },
+  svgImportMode: {browser: false, export: false, server: false },
+  svgAncorProperties: {browser: false, export: false, server: false},
+  lastCropImageId: {browser: false, export: false, server: false },
+  imageCropProperties: {browser: false, export: false, server: false},
 });
+/*--myca--*/
 
 const _clearAppStateForStorage = <
   ExportType extends "export" | "browser" | "server",

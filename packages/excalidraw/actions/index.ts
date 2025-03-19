@@ -3,7 +3,7 @@ export {
   actionBringForward,
   actionBringToFront,
   actionSendBackward,
-  actionSendToBack,
+  actionSendToBack
 } from "./actionZindex";
 export { actionSelectAll } from "./actionSelectAll";
 export { actionDuplicateSelection } from "./actionDuplicateSelection";
@@ -47,7 +47,7 @@ export {
   actionShortcuts,
 } from "./actionMenu";
 
-export { actionGroup, actionUngroup } from "./actionGroup";
+export { actionGroup, actionUngroup, actionMakeClippingMask, actionReleaseClippingMask, actionCropImage } from "./actionGroup";
 
 export { actionGoToCollaborator } from "./actionNavigate";
 

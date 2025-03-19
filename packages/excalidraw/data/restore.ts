@@ -47,15 +47,9 @@ import { normalizeLink } from "./url";
 import { syncInvalidIndices } from "../fractionalIndex";
 import { getSizeFromPoints } from "../points";
 
-type RestoredAppState = Omit<
-  AppState,
-  "offsetTop" | "offsetLeft" | "width" | "height"
->;
+type RestoredAppState = Omit<AppState, "offsetTop" | "offsetLeft" | "width" | "height">;
 
-export const AllowedExcalidrawActiveTools: Record<
-  AppState["activeTool"]["type"],
-  boolean
-> = {
+export const AllowedExcalidrawActiveTools: Record<AppState["activeTool"]["type"], boolean> = {
   selection: true,
   text: true,
   rectangle: true,
@@ -86,6 +80,7 @@ const getFontFamilyByName = (fontFamilyName: string): FontFamilyValues => {
       fontFamilyName as keyof typeof FONT_FAMILY
     ] as FontFamilyValues;
   }
+
   return DEFAULT_FONT_FAMILY;
 };
 
@@ -93,28 +88,16 @@ const repairBinding = (binding: PointBinding | null) => {
   if (!binding) {
     return null;
   }
+
   return { ...binding, focus: binding.focus || 0 };
 };
 
-const restoreElementWithProperties = <
-  T extends Required<Omit<ExcalidrawElement, "customData">> & {
-    customData?: ExcalidrawElement["customData"];
-    /** @deprecated */
-    boundElementIds?: readonly ExcalidrawElement["id"][];
-    /** @deprecated */
-    strokeSharpness?: StrokeRoundness;
-  },
-  K extends Pick<T, keyof Omit<Required<T>, keyof ExcalidrawElement>>,
->(
-  element: T,
-  extra: Pick<
-    T,
-    // This extra Pick<T, keyof K> ensure no excess properties are passed.
-    // @ts-ignore TS complains here but type checks the call sites fine.
-    keyof K
-  > &
-    Partial<Pick<ExcalidrawElement, "type" | "x" | "y" | "customData">>,
-): T => {
+
+const restoreElementWithProperties = <T extends Required<Omit<ExcalidrawElement, "customData">> & {customData?: ExcalidrawElement["customData"];/** @deprecated */boundElementIds?: readonly ExcalidrawElement["id"][];/** @deprecated */strokeSharpness?: StrokeRoundness;}, K extends Pick<T, keyof Omit<Required<T>, keyof ExcalidrawElement>>,>(element: T, extra: Pick<T,
+// This extra Pick<T, keyof K> ensure no excess properties are passed.
+// @ts-ignore TS complains here but type checks the call sites fine.
+keyof K> & Partial<Pick<ExcalidrawElement, "type" | "x" | "y" | "customData">>,): T => {
+
   const base: Pick<T, keyof ExcalidrawElement> = {
     type: extra.type || element.type,
     // all elements must have version > 0 so getSceneVersion() will pick up
@@ -128,53 +111,54 @@ const restoreElementWithProperties = <
     strokeWidth: element.strokeWidth || DEFAULT_ELEMENT_PROPS.strokeWidth,
     strokeStyle: element.strokeStyle ?? DEFAULT_ELEMENT_PROPS.strokeStyle,
     roughness: element.roughness ?? DEFAULT_ELEMENT_PROPS.roughness,
-    opacity:
-      element.opacity == null ? DEFAULT_ELEMENT_PROPS.opacity : element.opacity,
+    opacity: element.opacity == null ? DEFAULT_ELEMENT_PROPS.opacity : element.opacity,
     angle: element.angle || 0,
     x: extra.x ?? element.x ?? 0,
     y: extra.y ?? element.y ?? 0,
     strokeColor: element.strokeColor || DEFAULT_ELEMENT_PROPS.strokeColor,
-    backgroundColor:
-      element.backgroundColor || DEFAULT_ELEMENT_PROPS.backgroundColor,
+    backgroundColor: element.backgroundColor || DEFAULT_ELEMENT_PROPS.backgroundColor,
     width: element.width || 0,
     height: element.height || 0,
     seed: element.seed ?? 1,
     groupIds: element.groupIds ?? [],
     frameId: element.frameId ?? null,
-    roundness: element.roundness
-      ? element.roundness
-      : element.strokeSharpness === "round"
-      ? {
+    roundness: element.roundness ? element.roundness : element.strokeSharpness === "round" ? {
           // for old elements that would now use adaptive radius algo,
           // use legacy algo instead
-          type: isUsingAdaptiveRadius(element.type)
-            ? ROUNDNESS.LEGACY
-            : ROUNDNESS.PROPORTIONAL_RADIUS,
-        }
-      : null,
-    boundElements: element.boundElementIds
-      ? element.boundElementIds.map((id) => ({ type: "arrow", id }))
-      : element.boundElements ?? [],
+          type: isUsingAdaptiveRadius(element.type) ? ROUNDNESS.LEGACY : ROUNDNESS.PROPORTIONAL_RADIUS,
+        } : null,
+    boundElements: element.boundElementIds ? element.boundElementIds.map((id) => ({ type: "arrow", id })) : element.boundElements ?? [],
     updated: element.updated ?? getUpdatedTimestamp(),
     link: element.link ? normalizeLink(element.link) : null,
     locked: element.locked ?? false,
   };
 
   if ("customData" in element || "customData" in extra) {
-    base.customData =
-      "customData" in extra ? extra.customData : element.customData;
+    base.customData = "customData" in extra ? extra.customData : element.customData;
   }
 
-  return {
-    ...base,
-    ...getNormalizedDimensions(base),
-    ...extra,
-  } as unknown as T;
+  const myelement = element as any;
+
+  if (myelement.clippingMaskId && myelement.cmGroupLength) {
+    return {
+      ...base,
+      ...getNormalizedDimensions(base),
+      ...extra,
+      isMakeClippingMask: myelement.isMakeClippingMask,
+      clippingMaskId: myelement.clippingMaskId,
+      cmGroupLength: myelement.cmGroupLength,
+      cmeIndex: myelement.cmeIndex
+    } as unknown as T;
+  } else {
+    return {
+      ...base,
+      ...getNormalizedDimensions(base),
+      ...extra,
+    } as unknown as T;
+  }
 };
 
-const restoreElement = (
-  element: Exclude<ExcalidrawElement, ExcalidrawSelectionElement>,
-): typeof element | null => {
+const restoreElement = (element: Exclude<ExcalidrawElement, ExcalidrawSelectionElement>,): typeof element | null => {
   switch (element.type) {
     case "text":
       let fontSize = element.fontSize;
@@ -234,6 +218,10 @@ const restoreElement = (
         status: element.status || "pending",
         fileId: element.fileId,
         scale: element.scale || [1, 1],
+        akhonRenderKoraUchit: element.akhonRenderKoraUchit ?? false,
+        isRenderCropWindow: element.isRenderCropWindow ?? false,
+        isCroppedImage: element.isCroppedImage ?? false,
+        cropProperties: element.cropProperties
       });
     case "line":
     // @ts-ignore LEGACY type
@@ -276,17 +264,23 @@ const restoreElement = (
     }
 
     // generic elements
-    case "ellipse":
+    /*--i--*//*--myca--*/
     case "rectangle":
+      // var dfgdgbkdjfgdkjghdjfhgkdjhgkdj = element.isPathElement?element.isPathElement:false;
+      if (element.isPathElement) { 
+        return restoreElementWithProperties(element, {isPathElement: true, pathObjects: element.pathObjects, constx: element.constx, consty: element.consty, constWidth: element.constWidth, constHeight: element.constHeight, akhonRenderKoraUchit: false});
+      } else {  
+        return restoreElementWithProperties(element, {isPathElement: false, pathObjects: element.pathObjects, constx: element.constx, consty: element.consty, constWidth: element.constWidth, constHeight: element.constHeight, akhonRenderKoraUchit: false});
+      }
+    /*--myca--*/
+    case "ellipse":
     case "diamond":
     case "iframe":
     case "embeddable":
       return restoreElementWithProperties(element, {});
     case "magicframe":
     case "frame":
-      return restoreElementWithProperties(element, {
-        name: element.name ?? null,
-      });
+      return restoreElementWithProperties(element, {name: element.name ?? null,});
 
     // Don't use default case so as to catch a missing an element type case.
     // We also don't want to throw, but instead return void so we filter
@@ -302,21 +296,14 @@ const restoreElement = (
  *
  * NOTE mutates elements.
  */
-const repairContainerElement = (
-  container: Mutable<ExcalidrawElement>,
-  elementsMap: Map<string, Mutable<ExcalidrawElement>>,
-) => {
+const repairContainerElement = (container: Mutable<ExcalidrawElement>, elementsMap: Map<string, Mutable<ExcalidrawElement>>,) => {
   if (container.boundElements) {
     // copy because we're not cloning on restore, and we don't want to mutate upstream
     const boundElements = container.boundElements.slice();
 
     // dedupe bindings & fix boundElement.containerId if not set already
     const boundIds = new Set<ExcalidrawElement["id"]>();
-    container.boundElements = boundElements.reduce(
-      (
-        acc: Mutable<NonNullable<ExcalidrawElement["boundElements"]>>,
-        binding,
-      ) => {
+    container.boundElements = boundElements.reduce((acc: Mutable<NonNullable<ExcalidrawElement["boundElements"]>>, binding,) => {
         const boundElement = elementsMap.get(binding.id);
         if (boundElement && !boundIds.has(binding.id)) {
           boundIds.add(binding.id);
@@ -333,8 +320,7 @@ const repairContainerElement = (
             // if defined, lest boundElements is stale
             !boundElement.containerId
           ) {
-            (boundElement as Mutable<ExcalidrawTextElement>).containerId =
-              container.id;
+            (boundElement as Mutable<ExcalidrawTextElement>).containerId = container.id;
           }
         }
         return acc;
@@ -350,13 +336,8 @@ const repairContainerElement = (
  *
  * NOTE mutates elements.
  */
-const repairBoundElement = (
-  boundElement: Mutable<ExcalidrawTextElement>,
-  elementsMap: Map<string, Mutable<ExcalidrawElement>>,
-) => {
-  const container = boundElement.containerId
-    ? elementsMap.get(boundElement.containerId)
-    : null;
+const repairBoundElement = (boundElement: Mutable<ExcalidrawTextElement>, elementsMap: Map<string, Mutable<ExcalidrawElement>>,) => {
+  const container = boundElement.containerId ? elementsMap.get(boundElement.containerId) : null;
 
   if (!container) {
     boundElement.containerId = null;
@@ -367,14 +348,9 @@ const repairBoundElement = (
     return;
   }
 
-  if (
-    container.boundElements &&
-    !container.boundElements.find((binding) => binding.id === boundElement.id)
-  ) {
+  if (container.boundElements && !container.boundElements.find((binding) => binding.id === boundElement.id)) {
     // copy because we're not cloning on restore, and we don't want to mutate upstream
-    const boundElements = (
-      container.boundElements || (container.boundElements = [])
-    ).slice();
+    const boundElements = (container.boundElements || (container.boundElements = [])).slice();
     boundElements.push({ type: "text", id: boundElement.id });
     container.boundElements = boundElements;
   }
@@ -385,10 +361,7 @@ const repairBoundElement = (
  *
  * NOTE mutates elements.
  */
-const repairFrameMembership = (
-  element: Mutable<ExcalidrawElement>,
-  elementsMap: Map<string, Mutable<ExcalidrawElement>>,
-) => {
+const repairFrameMembership = (element: Mutable<ExcalidrawElement>, elementsMap: Map<string, Mutable<ExcalidrawElement>>,) => {
   if (element.frameId) {
     const containingFrame = elementsMap.get(element.frameId);
 
@@ -465,9 +438,7 @@ export const restoreElements = (
   return restoredElements;
 };
 
-const coalesceAppStateValue = <
-  T extends keyof ReturnType<typeof getDefaultAppState>,
->(
+const coalesceAppStateValue = <T extends keyof ReturnType<typeof getDefaultAppState>,>(
   key: T,
   appState: Exclude<ImportedDataState["appState"], null | undefined>,
   defaultAppState: ReturnType<typeof getDefaultAppState>,
@@ -477,12 +448,7 @@ const coalesceAppStateValue = <
   return value !== undefined ? value! : defaultAppState[key];
 };
 
-const LegacyAppStateMigrations: {
-  [K in keyof LegacyAppState]: (
-    ImportedDataState: Exclude<ImportedDataState["appState"], null | undefined>,
-    defaultAppState: ReturnType<typeof getDefaultAppState>,
-  ) => [LegacyAppState[K][1], AppState[LegacyAppState[K][1]]];
-} = {
+const LegacyAppStateMigrations: {[K in keyof LegacyAppState]: (ImportedDataState: Exclude<ImportedDataState["appState"], null | undefined>, defaultAppState: ReturnType<typeof getDefaultAppState>,) => [LegacyAppState[K][1], AppState[LegacyAppState[K][1]]];} = {
   isSidebarDocked: (appState, defaultAppState) => {
     return [
       "defaultSidebarDockedPreference",
@@ -496,10 +462,7 @@ const LegacyAppStateMigrations: {
   },
 };
 
-export const restoreAppState = (
-  appState: ImportedDataState["appState"],
-  localAppState: Partial<AppState> | null | undefined,
-): RestoredAppState => {
+export const restoreAppState = (appState: ImportedDataState["appState"],localAppState: Partial<AppState> | null | undefined,): RestoredAppState => {
   appState = appState || {};
   const defaultAppState = getDefaultAppState();
   const nextAppState = {} as typeof defaultAppState;
@@ -507,9 +470,7 @@ export const restoreAppState = (
   // first, migrate all legacy AppState properties to new ones. We do it
   // in one go before migrate the rest of the properties in case the new ones
   // depend on checking any other key (i.e. they are coupled)
-  for (const legacyKey of Object.keys(
-    LegacyAppStateMigrations,
-  ) as (keyof typeof LegacyAppStateMigrations)[]) {
+  for (const legacyKey of Object.keys(LegacyAppStateMigrations,) as (keyof typeof LegacyAppStateMigrations)[]) {
     if (legacyKey in appState) {
       const [nextKey, nextValue] = LegacyAppStateMigrations[legacyKey](
         appState,
@@ -591,17 +552,11 @@ export const restore = (
 };
 
 const restoreLibraryItem = (libraryItem: LibraryItem) => {
-  const elements = restoreElements(
-    getNonDeletedElements(libraryItem.elements),
-    null,
-  );
+  const elements = restoreElements(getNonDeletedElements(libraryItem.elements), null,);
   return elements.length ? { ...libraryItem, elements } : null;
 };
 
-export const restoreLibraryItems = (
-  libraryItems: ImportedDataState["libraryItems"] = [],
-  defaultStatus: LibraryItem["status"],
-) => {
+export const restoreLibraryItems = (libraryItems: ImportedDataState["libraryItems"] = [], defaultStatus: LibraryItem["status"],) => {
   const restoredItems: LibraryItem[] = [];
   for (const item of libraryItems) {
     // migrate older libraries
@@ -616,10 +571,7 @@ export const restoreLibraryItems = (
         restoredItems.push(restoredItem);
       }
     } else {
-      const _item = item as MarkOptional<
-        LibraryItem,
-        "id" | "status" | "created"
-      >;
+      const _item = item as MarkOptional<LibraryItem, "id" | "status" | "created">;
       const restoredItem = restoreLibraryItem({
         ..._item,
         id: _item.id || randomId(),

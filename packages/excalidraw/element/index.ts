@@ -31,6 +31,7 @@ export {
 export {
   resizeTest,
   getCursorForResizingElement,
+  CropWindowResizeTest,
   getElementWithTransformHandleType,
   getTransformHandleTypeFromCoords,
 } from "./resizeTest";

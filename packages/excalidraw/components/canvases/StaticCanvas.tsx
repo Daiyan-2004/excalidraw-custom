@@ -42,7 +42,7 @@ const StaticCanvas = (props: StaticCanvasProps) => {
       isComponentMounted.current = true;
 
       wrapper.replaceChildren(canvas);
-      canvas.classList.add("excalidraw__canvas", "static");
+      canvas.classList.add("excalidraw__canvas", "static", "qwertyuiopasdfghjklzxcvbnm");
     }
 
     const widthString = `${props.appState.width}px`;
@@ -83,9 +83,7 @@ const StaticCanvas = (props: StaticCanvasProps) => {
   return <div className="excalidraw__canvas-wrapper" ref={wrapperRef} />;
 };
 
-const getRelevantAppStateProps = (
-  appState: AppState,
-): StaticCanvasAppState => ({
+const getRelevantAppStateProps = (appState: AppState,): StaticCanvasAppState => ({
   zoom: appState.zoom,
   scrollX: appState.scrollX,
   scrollY: appState.scrollY,

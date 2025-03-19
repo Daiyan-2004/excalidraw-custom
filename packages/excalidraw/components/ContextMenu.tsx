@@ -78,16 +78,22 @@ export const ContextMenu = React.memo(
             const actionName = item.name;
             let label = "";
             if (item.label) {
-              if (typeof item.label === "function") {
-                label = t(
-                  item.label(
-                    elements,
-                    appState,
-                    actionManager.app,
-                  ) as unknown as TranslationKeys,
-                );
+              if (item.label === "Make Clipping Mask" || item.label === "Release Clipping Mask" ) {
+                
+                label = item.label;
+
               } else {
-                label = t(item.label as unknown as TranslationKeys);
+                if (typeof item.label === "function") {
+                  label = t(
+                    item.label(
+                      elements,
+                      appState,
+                      actionManager.app,
+                    ) as unknown as TranslationKeys,
+                  );
+                } else {
+                  label = t(item.label as unknown as TranslationKeys);
+                }
               }
             }
 

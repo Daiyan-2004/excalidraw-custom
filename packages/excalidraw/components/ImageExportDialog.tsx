@@ -36,8 +36,7 @@ import { FilledButton } from "./FilledButton";
 import { cloneJSON } from "../utils";
 import { prepareElementsForExport } from "../data";
 
-const supportsContextFilters =
-  "filter" in document.createElement("canvas").getContext("2d")!;
+const supportsContextFilters = "filter" in document.createElement("canvas").getContext("2d")!;
 
 export const ErrorCanvasPreview = () => {
   return (
@@ -119,8 +118,7 @@ const ImageExportModal = ({
       exportPadding: DEFAULT_EXPORT_PADDING,
       maxWidthOrHeight: Math.max(maxWidth, maxHeight),
       exportingFrame,
-    })
-      .then((canvas) => {
+    }).then((canvas) => {
         setRenderError(null);
         // if converting to blob fails, there's some problem that will
         // likely prevent preview and export (e.g. canvas too big)
@@ -134,8 +132,7 @@ const ImageExportModal = ({
             }
             throw e;
           });
-      })
-      .catch((error) => {
+      }).catch((error) => {
         console.error(error);
         setRenderError(error);
       });

@@ -50,6 +50,8 @@ import {
   ArrowheadDiamondIcon,
   ArrowheadDiamondOutlineIcon,
   fontSizeIcon,
+  ImageIcon,
+  PathIcon,
 } from "../components/icons";
 import {
   DEFAULT_FONT_FAMILY,
@@ -413,6 +415,46 @@ export const actionChangeFillStyle = register({
       </fieldset>
     );
   },
+});
+
+export const actionChangeSvgImportMode = register({
+  name: "changeSvgImportMode",
+  label: "SVG Import Mode",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    appState =  { ...appState, svgImportMode: value };
+    console.log(appState);
+    
+    return {
+      elements,
+      appState: appState,
+      storeAction: StoreAction.CAPTURE,
+    };
+  },
+  PanelComponent: ({ elements, appState, updateData }) => (
+    <fieldset>
+      <legend>SVG Import Mode</legend>
+      <ButtonIconSelect
+        group="stroke-width"
+        options={[
+          {
+            value: 1,
+            text: 'As Image',
+            icon: ImageIcon,
+            testId: "asImage",
+          },
+          {
+            value: 2,
+            text: 'As Elements',
+            icon: PathIcon,
+            testId: "asElements",
+          },
+        ]}
+        value={appState.svgImportMode}
+        onChange={(value) => updateData(value)}
+      />
+    </fieldset>
+  ),
 });
 
 export const actionChangeStrokeWidth = register({

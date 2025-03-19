@@ -87,6 +87,8 @@ export type InteractiveSceneRenderConfig = {
   scale: number;
   appState: InteractiveCanvasAppState;
   renderConfig: InteractiveCanvasRenderConfig;
+  staticRenderConfig: StaticCanvasRenderConfig,
+
   device: Device;
   callback: (data: RenderInteractiveSceneCallback) => void;
 };

@@ -227,9 +227,7 @@ class Scene {
     return (this.elementsMap.get(id) as T | undefined) || null;
   }
 
-  getNonDeletedElement(
-    id: ExcalidrawElement["id"],
-  ): NonDeleted<ExcalidrawElement> | null {
+  getNonDeletedElement(id: ExcalidrawElement["id"],): NonDeleted<ExcalidrawElement> | null {
     const element = this.getElement(id);
     if (element && isNonDeletedElement(element)) {
       return element;

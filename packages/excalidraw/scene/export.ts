@@ -173,10 +173,7 @@ export const exportToCanvas = async (
     viewBackgroundColor: string;
     exportingFrame?: ExcalidrawFrameLikeElement | null;
   },
-  createCanvas: (
-    width: number,
-    height: number,
-  ) => { canvas: HTMLCanvasElement; scale: number } = (width, height) => {
+  createCanvas: (width: number, height: number,) => { canvas: HTMLCanvasElement; scale: number } = (width, height) => {
     const canvas = document.createElement("canvas");
     canvas.width = width * appState.exportScale;
     canvas.height = height * appState.exportScale;
@@ -251,6 +248,7 @@ export const exportToCanvas = async (
   return canvas;
 };
 
+/*--myca--*/
 export const exportToSvg = async (
   elements: readonly NonDeletedExcalidrawElement[],
   appState: {
@@ -361,14 +359,14 @@ export const exportToSvg = async (
     const cy = (y2 - y1) / 2 - (frame.y - y1);
 
     exportingFrameClipPath += `<clipPath id=${frame.id}>
-            <rect transform="translate(${frame.x + offsetX} ${
-      frame.y + offsetY
-    }) rotate(${frame.angle} ${cx} ${cy})"
-          width="${frame.width}"
-          height="${frame.height}"
-          >
-          </rect>
-        </clipPath>`;
+      <rect
+        transform="translate(${frame.x + offsetX} ${frame.y + offsetY})
+        rotate(${frame.angle} ${cx} ${cy})"
+        width="${frame.width}"
+        height="${frame.height}"
+      >
+      </rect>
+    </clipPath>`;
   }
 
   svgRoot.innerHTML = `
@@ -430,10 +428,13 @@ export const exportToSvg = async (
           )
         : new Map(),
     },
+    width,
+    height,
   );
 
   return svgRoot;
 };
+/*--myca--*/
 
 // calculate smallest area to fit the contents in
 const getCanvasSize = (

@@ -131,8 +131,7 @@ export const getTransformHandlesFromCoords = (
   const width = x2 - x1;
   const height = y2 - y1;
   const dashedLineMargin = margin / zoom.value;
-  const centeringOffset =
-    (size - DEFAULT_TRANSFORM_HANDLE_SPACING * 2) / (2 * zoom.value);
+  const centeringOffset = (size - DEFAULT_TRANSFORM_HANDLE_SPACING * 2) / (2 * zoom.value);
 
   const transformHandles: TransformHandles = {
     nw: omitSides.nw
@@ -198,8 +197,7 @@ export const getTransformHandlesFromCoords = (
 
   // We only want to show height handles (all cardinal directions)  above a certain size
   // Note: we render using "mouse" size so we should also use "mouse" size for this check
-  const minimumSizeForEightHandles =
-    (5 * transformHandleSizes.mouse) / zoom.value;
+  const minimumSizeForEightHandles = (5 * transformHandleSizes.mouse) / zoom.value;
   if (Math.abs(width) > minimumSizeForEightHandles) {
     if (!omitSides.n) {
       transformHandles.n = generateTransformHandle(
@@ -288,9 +286,9 @@ export const getTransformHandles = (
       rotation: true,
     };
   }
-  const dashedLineMargin = isLinearElement(element)
-    ? DEFAULT_TRANSFORM_HANDLE_SPACING + 8
-    : DEFAULT_TRANSFORM_HANDLE_SPACING;
+  
+  const dashedLineMargin = isLinearElement(element) ? DEFAULT_TRANSFORM_HANDLE_SPACING + 8 : DEFAULT_TRANSFORM_HANDLE_SPACING;
+
   return getTransformHandlesFromCoords(
     getElementAbsoluteCoords(element, elementsMap, true),
     element.angle,
@@ -299,6 +297,52 @@ export const getTransformHandles = (
     omitSides,
     dashedLineMargin,
   );
+};
+
+export const getCropTransformHandles = (
+  element: ExcalidrawElement,
+  zoom: Zoom,
+  elementsMap: ElementsMap,
+  pointerType: PointerType = "mouse",
+  omitSides: { [T in TransformHandleType]?: boolean } = DEFAULT_OMIT_SIDES,
+): TransformHandles => {
+  // so that when locked element is selected (especially when you toggle lock
+  // via keyboard) the locked element is visually distinct, indicating
+  // you can't move/resize
+
+  if (element.locked) {
+    return {};
+  }
+
+
+  if ('isRenderCropWindow' in element && 'cropProperties' in element && element.isRenderCropWindow) {
+    
+    if (isFrameLikeElement(element)) {
+      omitSides = {
+        ...omitSides,
+        rotation: true,
+      };
+    }
+    
+    const dashedLineMargin = -DEFAULT_TRANSFORM_HANDLE_SPACING;
+    const nx1 = element.x + element.cropProperties.x;
+    const ny1 = element.y + element.cropProperties.y;
+    const nx2 = nx1 + element.cropProperties.width;
+    const ny2 = ny1 + element.cropProperties.height;
+    const ncx = element.x + element.width / 2;
+    const ncy = element.y + element.height / 2;
+
+    return getTransformHandlesFromCoords(
+      [nx1, ny1, nx2, ny2, ncx, ncy],
+      element.angle,
+      zoom,
+      pointerType,
+      omitSides,
+      dashedLineMargin,
+    );
+  } else {
+    return {};
+  }
 };
 
 export const shouldShowBoundingBox = (

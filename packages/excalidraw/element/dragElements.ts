@@ -114,8 +114,7 @@ const updateElementCoords = (
   element: NonDeletedExcalidrawElement,
   dragOffset: { x: number; y: number },
 ) => {
-  const originalElement =
-    pointerDownState.originalElements.get(element.id) ?? element;
+  const originalElement = pointerDownState.originalElements.get(element.id) ?? element;
 
   const nextX = originalElement.x + dragOffset.x;
   const nextY = originalElement.y + dragOffset.y;
@@ -147,8 +146,7 @@ export const dragNewElement = (
   shouldMaintainAspectRatio: boolean,
   shouldResizeFromCenter: boolean,
   zoom: NormalizedZoomValue,
-  /** whether to keep given aspect ratio when `isResizeWithSidesSameLength` is
-      true */
+  /** whether to keep given aspect ratio when `isResizeWithSidesSameLength` is true */
   widthAspectRatio?: number | null,
   originOffset: {
     x: number;

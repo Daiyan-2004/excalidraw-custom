@@ -81,6 +81,13 @@ export type ExcalidrawSelectionElement = _ExcalidrawElementBase & {
 
 export type ExcalidrawRectangleElement = _ExcalidrawElementBase & {
   type: "rectangle";
+  isPathElement: any;
+  pathObjects: any;
+  constx: any;
+  consty: any;
+  constWidth: any;
+  constHeight: any;
+  akhonRenderKoraUchit: any;
 };
 
 export type ExcalidrawDiamondElement = _ExcalidrawElementBase & {
@@ -125,6 +132,15 @@ export type ExcalidrawImageElement = _ExcalidrawElementBase &
     status: "pending" | "saved" | "error";
     /** X and Y scale factors <-1, 1>, used for image axis flipping */
     scale: [number, number];
+    akhonRenderKoraUchit: boolean;
+    isRenderCropWindow: boolean;
+    isCroppedImage: boolean;
+    cropProperties: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
   }>;
 
 export type InitializedExcalidrawImageElement = MarkNonNullable<

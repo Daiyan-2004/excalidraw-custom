@@ -930,6 +930,111 @@ export class LinearElementEditor {
       : rotate(x, y, cx, cy, element.angle);
   }
 
+  /*--myca--*/
+  static generatesvgPropToPath = (pathProperties:any, scaleXcoor: number, scaleYcoor: number) => {
+    var pathText = "";
+    for (let aindex = 0; aindex < pathProperties.length; aindex++) {
+         var property = pathProperties[aindex];
+         var command = property.command;
+         var coordinates = property.coordinates;
+         pathText += command;
+         if (coordinates.length % 2 === 0 && coordinates.length != 0) {
+            for (let bindex = 0; bindex < coordinates.length; bindex += 2) {
+              var coordinateX = coordinates[0+bindex] * scaleXcoor;
+              var coordinateY = coordinates[1+bindex] * scaleYcoor;
+              pathText += " " + coordinateX + " " + coordinateY;
+            }
+         } else if(coordinates.length === 7 && command.toLowerCase() === "a") {
+  
+            var coordinateX1 = coordinates[0] * scaleXcoor;
+            var coordinateY1 = coordinates[1] * scaleYcoor;
+            var coordinateX2 = coordinates[5] * scaleXcoor;
+            var coordinateY2 = coordinates[6] * scaleYcoor;
+  
+            pathText += " " + coordinateX1 + " " + coordinateY1 + " "
+                     + coordinates[2] + " " + coordinates[3] + " "
+                     + coordinates[4] + " " + coordinateX2 + " "
+                     + coordinateY2;
+         }
+    }
+  
+    return pathText;
+  }
+
+  static getRadialDistance(x1: number, y1: number, x2: number, y2: number): number {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+  }
+
+  static isPointInsideRectangle(px: number, py: number, rectX: number, rectY: number, rectWidth: number, rectHeight: number, originX: number, originY: number, theta: number) {
+    // px, py: বিন্দুর x ও y স্থানাঙ্ক
+    // rectX, rectY: মূল আয়তক্ষেত্রের বাম-উপরের কোণের x ও y স্থানাঙ্ক
+    // rectWidth, rectHeight: আয়তক্ষেত্রের প্রস্থ ও উচ্চতা
+    // originX, originY: আয়তক্ষেত্রের ঘূর্ণনের কেন্দ্র
+    // theta: ঘূর্ণনের কোণ (radian-এ)
+  
+    // বিন্দুটিকে উল্টো কোণে ঘুরানো হচ্ছে (-theta)
+    const cosTheta = Math.cos(-theta);
+    const sinTheta = Math.sin(-theta);
+  
+    // ঘোরানো স্থানাঙ্ক
+    const rotatedX = cosTheta * (px - originX) - sinTheta * (py - originY) + originX;
+    const rotatedY = sinTheta * (px - originX) + cosTheta * (py - originY) + originY;
+  
+    // মূল আয়তক্ষেত্রের ভিতরে আছে কিনা তা চেক করা
+    if (rotatedX >= rectX && rotatedX <= (rectX + rectWidth) &&
+        rotatedY >= rectY && rotatedY <= (rectY + rectHeight)) {
+      return true;
+    }
+    return false;
+  }
+
+  static isPointInsideCropWindow(element: any, px: number, py: number) {
+    /**
+     * cw = crop window.
+     * The coordinates absolute values without rotation
+     */
+    var cwx1 = element.x + element.cropProperties.x;
+    var cwy1 = element.y + element.cropProperties.y;
+    var cwx2 = cwx1 + element.cropProperties.width;
+    var cwy2 = cwy1 + element.cropProperties.height;
+
+    /**
+     * Rotational elements.
+     * Here [cwcx, cwcy] is the rotational origin.
+     */
+    var cwcx = element.x + element.width / 2;
+    var cwcy = element.y + element.height / 2;
+    var angle = element.angle;
+
+    // বিন্দুটিকে উল্টো কোণে ঘুরানো হচ্ছে (-theta)
+    const cosTheta = Math.cos(-angle);
+    const sinTheta = Math.sin(-angle);
+  
+    // ঘোরানো স্থানাঙ্ক
+    const rotatedX = cosTheta * (px - cwcx) - sinTheta * (py - cwcy) + cwcx;
+    const rotatedY = sinTheta * (px - cwcx) + cosTheta * (py - cwcy) + cwcy;
+  
+    // মূল আয়তক্ষেত্রের ভিতরে আছে কিনা তা চেক করা
+    if (rotatedX >= cwx1 && rotatedX <= (cwx2) && rotatedY >= cwy1 && rotatedY <= (cwy2)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  static rotateInverse(px: number, py: number, ox: number, oy: number, angle: number) {
+    /**
+     * px = point x coord
+     * py = point y coord
+     * ox = origin x coord
+     * oy = origin y coord
+     */
+    var irx = Math.cos(angle) * (px - ox) + Math.sin(angle) * (py - oy) + ox;
+    var iry = -Math.sin(angle) * (px - ox) + Math.cos(angle) * (py - oy) + oy;
+    return [irx, iry]
+  }
+  /*--myca--*/
+
   static pointFromAbsoluteCoords(
     element: NonDeleted<ExcalidrawLinearElement>,
     absoluteCoords: Point,

@@ -38,14 +38,7 @@ import {
   getBoundTextMaxWidth,
   getDefaultLineHeight,
 } from "./textElement";
-import {
-  DEFAULT_ELEMENT_PROPS,
-  DEFAULT_FONT_FAMILY,
-  DEFAULT_FONT_SIZE,
-  DEFAULT_TEXT_ALIGN,
-  DEFAULT_VERTICAL_ALIGN,
-  VERTICAL_ALIGN,
-} from "../constants";
+import {DEFAULT_ELEMENT_PROPS,DEFAULT_FONT_FAMILY,DEFAULT_FONT_SIZE,DEFAULT_TEXT_ALIGN,DEFAULT_VERTICAL_ALIGN,VERTICAL_ALIGN,} from "../constants";
 import type { MarkOptional, Merge, Mutable } from "../utility-types";
 
 export type ElementConstructorOpts = MarkOptional<
@@ -136,7 +129,10 @@ export const newElement = (
     type: ExcalidrawGenericElement["type"];
   } & ElementConstructorOpts,
 ): NonDeleted<ExcalidrawGenericElement> =>
-  _newElementBase<ExcalidrawGenericElement>(opts.type, opts);
+  /*--myca--*/
+  // _newElementBase<ExcalidrawGenericElement>(opts.type, opts);
+  _newElementBase<ExcalidrawGenericElement>(opts.type, opts) as NonDeleted<ExcalidrawGenericElement>;
+  /*--myca--*/
 
 export const newEmbeddableElement = (
   opts: {
@@ -410,6 +406,10 @@ export const newImageElement = (
     status?: ExcalidrawImageElement["status"];
     fileId?: ExcalidrawImageElement["fileId"];
     scale?: ExcalidrawImageElement["scale"];
+    akhonRenderKoraUchit?: ExcalidrawImageElement["akhonRenderKoraUchit"];
+    isRenderCropWindow?: ExcalidrawImageElement["isRenderCropWindow"];
+    isCroppedImage?: ExcalidrawImageElement["isCroppedImage"];
+    cropProperties?: ExcalidrawImageElement["cropProperties"];
   } & ElementConstructorOpts,
 ): NonDeleted<ExcalidrawImageElement> => {
   return {
@@ -420,6 +420,15 @@ export const newImageElement = (
     status: opts.status ?? "pending",
     fileId: opts.fileId ?? null,
     scale: opts.scale ?? [1, 1],
+    akhonRenderKoraUchit: opts.akhonRenderKoraUchit ?? false,
+    isRenderCropWindow: opts.isRenderCropWindow ?? false,
+    isCroppedImage: opts.isCroppedImage ?? false,
+    cropProperties: opts.cropProperties ?? {
+      x: 0,
+      y: 0,
+      width: opts.width!,
+      height: opts.height!
+    }
   };
 };
 

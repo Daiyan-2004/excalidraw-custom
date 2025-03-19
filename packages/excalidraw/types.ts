@@ -219,6 +219,7 @@ export type ObservedElementsAppState = {
   selectedLinearElementId: LinearElementEditor["elementId"] | null;
 };
 
+/*--myca--*/
 export interface AppState {
   contextMenu: {
     items: ContextMenuItems;
@@ -365,7 +366,45 @@ export interface AppState {
   userToFollow: UserToFollow | null;
   /** the socket ids of the users following the current user */
   followedBy: Set<SocketId>;
+  svgImportMode: number;
+  svgAncorProperties: {
+    hpx: number;
+    hpy: number;
+    cpx: number;
+    cpy: number;
+    dragging: boolean;
+    hoverPointProps: {
+      id: string;
+      aidx: number;
+      bidx: number;
+    };
+    clickedPointProps: {
+      id: string;
+      aidx: number;
+      bidx: number;
+    };
+    openedPointProps: {
+      id: string;
+      aidx: number;
+      bidx: number;
+    };
+  };
+  lastCropImageId: string;
+  imageCropProperties: {
+    isDragging: boolean;
+    id: string;
+    offsetX: number;
+    offsetY: number;
+    TransformHandleType: string | boolean;
+    CropProperties: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
+  };
 }
+/*--myca--*/
 
 export type UIAppState = Omit<
   AppState,

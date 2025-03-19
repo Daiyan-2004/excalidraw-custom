@@ -8,6 +8,7 @@ import type {
   InteractiveCanvasRenderConfig,
   RenderableElementsMap,
   RenderInteractiveSceneCallback,
+  StaticCanvasRenderConfig,
 } from "../../scene/types";
 import type {
   NonDeletedExcalidrawElement,
@@ -27,6 +28,7 @@ type InteractiveCanvasProps = {
   selectionNonce: number | undefined;
   scale: number;
   appState: InteractiveCanvasAppState;
+  StaticCanvasRenderConfig: StaticCanvasRenderConfig;
   device: Device;
   renderInteractiveSceneCallback: (
     data: RenderInteractiveSceneCallback,
@@ -65,6 +67,8 @@ type InteractiveCanvasProps = {
 const InteractiveCanvas = (props: InteractiveCanvasProps) => {
   const isComponentMounted = useRef(false);
 
+  // console.log('{interActiveCanvas.tsx} hello, kaz kore!');
+  
   useEffect(() => {
     if (!isComponentMounted.current) {
       isComponentMounted.current = true;
@@ -138,6 +142,7 @@ const InteractiveCanvas = (props: InteractiveCanvasProps) => {
           selectionColor,
           renderScrollbars: false,
         },
+        staticRenderConfig: props.StaticCanvasRenderConfig,
         device: props.device,
         callback: props.renderInteractiveSceneCallback,
       },
@@ -173,9 +178,7 @@ const InteractiveCanvas = (props: InteractiveCanvasProps) => {
   );
 };
 
-const getRelevantAppStateProps = (
-  appState: AppState,
-): InteractiveCanvasAppState => ({
+const getRelevantAppStateProps = (appState: AppState,): InteractiveCanvasAppState => ({
   zoom: appState.zoom,
   scrollX: appState.scrollX,
   scrollY: appState.scrollY,
